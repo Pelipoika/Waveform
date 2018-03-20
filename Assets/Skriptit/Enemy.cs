@@ -26,6 +26,7 @@ public class Enemy : MonoBehaviour
 	public float FloorCheckDistanceX = 0.95f;
 	public float FloorCheckDistanceY = 2.19f;
 
+
 	//Randomi kävely
 	private int m_walkDirection;
 
@@ -37,6 +38,7 @@ public class Enemy : MonoBehaviour
 
 	public float RandomWalkMinTime;
 	public float RandomWalkMaxTime;
+
 
 	// Use this for initialization
 	private void Start()
