@@ -128,6 +128,10 @@ MonoBehaviour:
   LedgeDistance: 0.95
   FloorCheckDistanceX: 0.5
   FloorCheckDistanceY: 2.2
+  RandomWalkCooldownMin: 1
+  RandomWalkCooldownMax: 0.2
+  RandomWalkMinTime: 1
+  RandomWalkMaxTime: 3
 --- !u!114 &114212762496095698
 MonoBehaviour:
   m_ObjectHideFlags: 1

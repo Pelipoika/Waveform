@@ -1204,7 +1204,7 @@ MonoBehaviour:
     type: 2}
   Spawns: []
   MinEnemiesPerBlock: 0
-  MaxEnemiesPerBlock: 25
+  MaxEnemiesPerBlock: 10
 --- !u!1 &395054704
 GameObject:
   m_ObjectHideFlags: 0
