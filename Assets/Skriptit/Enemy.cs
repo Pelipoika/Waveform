@@ -15,8 +15,10 @@ public class Enemy : MonoBehaviour
 
 	public float VisionDistance;
 	public float AttackDistance;
-	public int   DamagePerSwing;
 	public float Acceleration;
+
+	public int   DamagePerSwing;
+
 	public bool  Fleeing;
 
 
