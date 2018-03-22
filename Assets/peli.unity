@@ -1846,6 +1846,7 @@ MonoBehaviour:
   CameraPosition: {x: 0, y: 0, z: 0}
   Target: {fileID: 1371186202}
   SmootAmount: 0.3
+  CameraKickSmoothAmount: 0.6
 --- !u!20 &573081984
 Camera:
   m_ObjectHideFlags: 0

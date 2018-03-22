@@ -82,6 +82,7 @@ public class CameraController : MonoBehaviour
 	//Kameraan vaikuttamassa olevat ulkoiset/extra voimat
 	private float   m_force;
 	private Vector3 m_forceDirection;
+	public  float   CameraKickSmoothAmount = 1.0f;
 
 	private void FixedUpdate()
 	{
@@ -90,8 +91,8 @@ public class CameraController : MonoBehaviour
 			Mathf.SmoothStep(transform.position.y, Target.transform.position.y + CameraOffset.y, SmootAmount)
 		);
 
-		m_forceDirection.x = Mathf.SmoothStep(m_forceDirection.x, 0f, SmootAmount * 2);
-		m_forceDirection.y = Mathf.SmoothStep(m_forceDirection.y, 0f, SmootAmount * 2);
+		m_forceDirection.x = Mathf.MoveTowards(m_forceDirection.x, 0f, CameraKickSmoothAmount);
+		m_forceDirection.y = Mathf.MoveTowards(m_forceDirection.y, 0f, CameraKickSmoothAmount);
 
 		CameraPosition += m_forceDirection * m_force;
 	}

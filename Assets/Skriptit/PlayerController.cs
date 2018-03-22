@@ -219,7 +219,7 @@ public class PlayerController : MonoBehaviour
 		}
 
 		dirVector2.y = Random.Range(0f, 1f);
-		m_cameraController.AddForce(dirVector2, -.05f);
+		m_cameraController.AddForce(dirVector2, -.25f);
 
 		StartCoroutine(ShotEffect());
 	}
