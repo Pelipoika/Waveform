@@ -30,7 +30,10 @@ public class Coin : MonoBehaviour
 
 		//OnPullStart
 		if (PullStartTime < Time.time && !m_pulled)
+		{
+		//	GetComponent<BoxCollider2D>().isTrigger = true;
 			gameObject.layer = LayerMask.NameToLayer("CoinPulled");
+		}
 
 		m_pulled            = true;
 		m_body.gravityScale = 0.0f;

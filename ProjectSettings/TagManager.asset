@@ -7,6 +7,7 @@ TagManager:
   - PotentialSpawn
   - Enemy
   - Coin
+  - PlayerCoinCollider
   layers:
   - Default
   - TransparentFX
@@ -22,7 +23,7 @@ TagManager:
   - Corpse
   - Coin
   - CoinPulled
-  - 
+  - CoinCollider
   - 
   - 
   - 

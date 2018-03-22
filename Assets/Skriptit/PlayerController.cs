@@ -1,11 +1,9 @@
-﻿using JetBrains.Annotations;
-using System;
-using System.Collections;
+﻿using System.Collections;
+using JetBrains.Annotations;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 public class PlayerController : MonoBehaviour
 {
@@ -108,7 +106,7 @@ public class PlayerController : MonoBehaviour
 		if (iCount != 0)
 			EnemyCountText.text = iCount != 1 ? iCount + " enemies alive" : iCount + " enemy alive";
 		else
-			EnemyCountText.text = "YOU WIN!";
+			EnemyCountText.text = "YOU WIN!\nPress R to Restart";
 	}
 
 	public void Damaged(Vector2 dirVector2)
@@ -172,7 +170,7 @@ public class PlayerController : MonoBehaviour
 			m_animator.SetBool("aim", Input.GetKey(KeyCode.Mouse1));
 		}
 
-		m_animator.SetBool("run", Math.Abs(vecAdditionVelocity.x) > 0.0);
+		m_animator.SetBool("run", Mathf.Abs(vecAdditionVelocity.x) > 0.0);
 
 		if (!DidJustJump() && IsOnGround() && Input.GetKey(KeyCode.Space))
 		{
@@ -225,17 +223,7 @@ public class PlayerController : MonoBehaviour
 
 		StartCoroutine(ShotEffect());
 	}
-
-	private void OnCollisionEnter2D(Collision2D collision)
-	{
-	//	Debug.Log(collision.transform.tag + " | " + collision.transform.name);
-
-		if (collision.transform.CompareTag("Coin"))
-		{
-			Destroy(collision.gameObject);
-		}
-	}
-
+	
 	private IEnumerator ShotEffect()
 	{
 		m_laserLine.enabled = true;
