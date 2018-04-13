@@ -206,14 +206,17 @@ public class Enemy : MonoBehaviour
 		var dirVector2 = m_renderer.flipX ? Vector2.left : Vector2.right;
 
 		var hit = Physics2D.Raycast(rayOrigin, dirVector2, AttackDistance, m_playerMask);
-		if (hit.collider == null) return;
+		if (hit.collider == null)
+			return;
 
 		var healthManager = hit.collider.GetComponent<HealthManager>();
-		if (healthManager == null) return;
+		if (healthManager == null)
+			return;
 		healthManager.TakeDamage(gameObject, DamagePerSwing, hit.point);
 
 		var controller = hit.collider.GetComponent<PlayerController>();
-		if (controller == null) return;
+		if (controller == null)
+			return;
 		controller.Damaged(dirVector2);
 	}
 }

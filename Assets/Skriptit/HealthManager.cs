@@ -88,12 +88,17 @@ public class HealthManager : MonoBehaviour
 
 			var pos = transform.position;
 
-			var count = Random.Range(1, 8);
+			bool bIsBoss = gameObject.transform.localScale.x > 1f;
+
+			var count = Random.Range(bIsBoss ? 50 : 1, bIsBoss ? 100 : 8);
 			for (var i = 0; i < count; i++)
 			{
 				var coin = Instantiate(CoinPrefab, pos, Quaternion.identity);
 				coin.GetComponent<Coin>().Puller          = attacker.transform;
 				coin.GetComponent<Rigidbody2D>().velocity = new Vector2(Random.Range(-2, 2), Random.Range(5, 10));
+
+				if (bIsBoss)
+					coin.transform.localScale *= 2f;
 			}
 		}
 	}

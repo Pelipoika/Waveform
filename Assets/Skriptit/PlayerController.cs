@@ -15,6 +15,8 @@ public class PlayerController : MonoBehaviour
 	private CameraController m_cameraController;
 	private HealthManager    m_myHealthManager;
 
+	[SerializeField] private EnemySpawnManager m_spawnManager;
+
 	[Tooltip("Kamera joka renderöi tällähetkellä pelaajaa")]
 	public Camera Camera;
 
@@ -78,6 +80,8 @@ public class PlayerController : MonoBehaviour
 	const float DragX = 1.0f;
 	const float DragY = 0.01f;
 
+	private bool bossActive;
+
 	private void Update()
 	{
 		if (Input.GetKeyDown(KeyCode.R))
@@ -87,7 +91,7 @@ public class PlayerController : MonoBehaviour
 
 			return;
 		}
-		
+
 		DamageImage.color = m_damaged ? FlashColor : Color.Lerp(DamageImage.color, Color.clear, FlashSpeed * Time.deltaTime);
 
 		m_damaged = false;
@@ -104,9 +108,38 @@ public class PlayerController : MonoBehaviour
 		int iCount = GameObject.FindGameObjectsWithTag("Enemy").Count(enemy => !enemy.GetComponent<HealthManager>().IsDead);
 
 		if (iCount != 0)
-			EnemyCountText.text = iCount != 1 ? iCount + " enemies alive" : iCount + " enemy alive";
+		{
+			if (bossActive)
+			{
+				EnemyCountText.text = "KILL THE FINAL BOSS!";
+			}
+			else
+			{
+				EnemyCountText.text = iCount != 1 ? iCount + " enemies alive" : iCount + " enemy alive";
+			}
+		}
 		else
+		{
 			EnemyCountText.text = "YOU WIN!\nPress R to Restart";
+		}
+
+		if (iCount != 0 || bossActive)
+			return;
+
+		GameObject boss = m_spawnManager.SpawnEnemy(new Vector3(-35f, 0f));
+
+		HealthManager bossHpManager = boss.GetComponent<HealthManager>();
+		Enemy         bossEnemy     = boss.GetComponent<Enemy>();
+
+		bossHpManager.Health = bossHpManager.MaxHealth *= 10;
+
+		bossEnemy.Acceleration   =  300f;
+		bossEnemy.AttackDistance =  2f;
+		bossEnemy.DamagePerSwing *= 2;
+
+		boss.transform.localScale *= 2f;
+
+		bossActive = true;
 	}
 
 	public void Damaged(Vector2 dirVector2)
@@ -223,7 +256,7 @@ public class PlayerController : MonoBehaviour
 
 		StartCoroutine(ShotEffect());
 	}
-	
+
 	private IEnumerator ShotEffect()
 	{
 		m_laserLine.enabled = true;

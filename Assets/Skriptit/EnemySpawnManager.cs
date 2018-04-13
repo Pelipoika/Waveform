@@ -28,8 +28,13 @@ public class EnemySpawnManager : MonoBehaviour
 			//	Viholliset levittäytyvät itsekseen
 			//	origin.x += Random.Range(0, (spawnCollider.size.x / 4));
 				
-				Instantiate(EnemyGameObject, new Vector3(origin.x, origin.y), Quaternion.identity);
+				SpawnEnemy(new Vector3(origin.x, origin.y));
 			}
 		}
+	}
+
+	public GameObject SpawnEnemy(Vector3 position)
+	{
+		return Instantiate(EnemyGameObject, position, Quaternion.identity);
 	}
 }
