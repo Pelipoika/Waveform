@@ -3,20 +3,47 @@ using UnityEngine.UI;
 
 public class CoinCollisionHandler : MonoBehaviour
 {
-	public Text CoinCountText;
+	public GameObject PlayerGameObject;
 
-	private int m_collectedCoins;
+	public Text CoinCountText;
+	public int  CollectedCoins;
+
+	private PlayerController m_playerController;
+
+	private void Start()
+	{
+		m_playerController = PlayerGameObject.GetComponent<PlayerController>();
+	}
 
 	private void OnTriggerEnter2D(Collider2D collision)
 	{
+		if (collision.transform.CompareTag("Chest"))
+		{
+			if (!PlayerGameObject)
+				return;
+
+			m_playerController.TouchingChest = true;
+			m_playerController.TouchedChest  = collision.gameObject;
+		}
+
 		if (collision.transform.CompareTag("Coin"))
 		{
 			Destroy(collision.gameObject);
 
-			Debug.Log("Kolikko napattu");
-
-			m_collectedCoins++;
+			CollectedCoins++;
 		}
+	}
+
+	private void OnTriggerExit2D(Collider2D other)
+	{
+		if (!other.transform.CompareTag("Chest"))
+			return;
+
+		if (!PlayerGameObject)
+			return;
+
+		m_playerController.TouchingChest = false;
+		m_playerController.TouchedChest  = null;
 	}
 
 	private void Update()
@@ -24,6 +51,6 @@ public class CoinCollisionHandler : MonoBehaviour
 		if (CoinCountText == null)
 			return;
 
-		CoinCountText.text = m_collectedCoins.ToString();
+		CoinCountText.text = CollectedCoins.ToString();
 	}
 }

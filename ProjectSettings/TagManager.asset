@@ -8,6 +8,8 @@ TagManager:
   - Enemy
   - Coin
   - PlayerCoinCollider
+  - Chest
+  - Pickup
   layers:
   - Default
   - TransparentFX

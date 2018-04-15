@@ -50,8 +50,8 @@ public class HealthManager : MonoBehaviour
 		Vector2 dir = transform.position - attacker.transform.position;
 		dir.Normalize();
 
-		//	dir.y =  Random.Range(.1f, .2f);
-		dir *= Random.Range(50f, 100f);
+		//Scale knockback by scale.
+		dir *= Random.Range((50f / m_body.transform.localScale.y), 100f);
 
 		var numero = Instantiate(DamageNumero, hitPoint, Quaternion.identity, m_worldSpaceCanvas.transform);
 		numero.GetComponent<Rigidbody2D>().velocity = new Vector2(Random.Range(-2, 2), Random.Range(5, 10));

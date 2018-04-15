@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,7 +15,10 @@ public class PlayerController : MonoBehaviour
 	private CameraController m_cameraController;
 	private HealthManager    m_myHealthManager;
 
-	[SerializeField] private EnemySpawnManager m_spawnManager;
+	public Item ItemBaseItem;
+
+	public EnemySpawnManager    SpawnManager;
+	public CoinCollisionHandler CoinHandler;
 
 	[Tooltip("Kamera joka renderöi tällähetkellä pelaajaa")]
 	public Camera Camera;
@@ -32,11 +35,13 @@ public class PlayerController : MonoBehaviour
 	public float Acceleration;
 	public float Jump;
 
-	public int DamagePerShot;
+	public  int DamagePerShot;
+	private int m_shootableMask;
 
 	private bool m_bJumping;
 
-	private int m_shootableMask;
+	[HideInInspector] public bool       TouchingChest;
+	[HideInInspector] public GameObject TouchedChest;
 
 	// Use this for initialization
 	private void Start()
@@ -80,7 +85,7 @@ public class PlayerController : MonoBehaviour
 	const float DragX = 1.0f;
 	const float DragY = 0.01f;
 
-	private bool bossActive;
+	private bool m_bossActive;
 
 	private void Update()
 	{
@@ -92,12 +97,12 @@ public class PlayerController : MonoBehaviour
 			return;
 		}
 
+		if (EnemyCountText == null)
+			return;
+
 		DamageImage.color = m_damaged ? FlashColor : Color.Lerp(DamageImage.color, Color.clear, FlashSpeed * Time.deltaTime);
 
 		m_damaged = false;
-
-		if (EnemyCountText == null)
-			return;
 
 		if (m_myHealthManager.IsDead)
 		{
@@ -105,28 +110,47 @@ public class PlayerController : MonoBehaviour
 			return;
 		}
 
+		if (TouchingChest && Input.GetKeyDown(KeyCode.F))
+		{
+			Chest chestScript = TouchedChest.GetComponent<Chest>();
+			int   chestCost   = chestScript.Price;
+
+			if (CoinHandler.CollectedCoins < chestCost || chestScript.Used)
+			{
+				Debug.Log("Ei pysty");
+			}
+			else
+			{
+				CoinHandler.CollectedCoins -= chestCost;
+
+				chestScript.Used           = true;
+				chestScript.ChestInfo.text = "";
+
+				ItemBaseItem.Spawn(transform.position, 1, "Sprites/possu.png");
+
+				Debug.Log("Ostit chestin");
+			}
+		}
+
 		int iCount = GameObject.FindGameObjectsWithTag("Enemy").Count(enemy => !enemy.GetComponent<HealthManager>().IsDead);
 
 		if (iCount != 0)
 		{
-			if (bossActive)
-			{
-				EnemyCountText.text = "KILL THE FINAL BOSS!";
-			}
-			else
-			{
-				EnemyCountText.text = iCount != 1 ? iCount + " enemies alive" : iCount + " enemy alive";
-			}
+			EnemyCountText.text = m_bossActive
+				? "KILL THE FINAL BOSS!"
+				: (iCount != 1 ? iCount + " enemies alive" : iCount + " enemy alive");
 		}
 		else
 		{
 			EnemyCountText.text = "YOU WIN!\nPress R to Restart";
 		}
 
-		if (iCount != 0 || bossActive)
+		if (iCount != 0 || m_bossActive)
+		{
 			return;
+		}
 
-		GameObject boss = m_spawnManager.SpawnEnemy(new Vector3(-35f, 0f));
+		GameObject boss = SpawnManager.SpawnEnemy(new Vector3(-35f, 0f));
 
 		HealthManager bossHpManager = boss.GetComponent<HealthManager>();
 		Enemy         bossEnemy     = boss.GetComponent<Enemy>();
@@ -136,10 +160,11 @@ public class PlayerController : MonoBehaviour
 		bossEnemy.Acceleration   =  300f;
 		bossEnemy.AttackDistance =  2f;
 		bossEnemy.DamagePerSwing *= 2;
+		bossEnemy.VisionDistance *= 2f;
 
 		boss.transform.localScale *= 2f;
 
-		bossActive = true;
+		m_bossActive = true;
 	}
 
 	public void Damaged(Vector2 dirVector2)

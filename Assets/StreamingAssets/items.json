@@ -1,0 +1,15 @@
+{
+	"items":
+	[
+		{
+			"id":1,
+			"name": "Life Savings",
+			"image":"possu.png"
+		},
+		{
+			"id":2,
+			"name": "Life Earnings",
+			"image":"paska.png"
+		}
+	]
+}
