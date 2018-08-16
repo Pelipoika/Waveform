@@ -25,25 +25,53 @@ public class CoinCollisionHandler : MonoBehaviour
 			m_playerController.TouchingChest = true;
 			m_playerController.TouchedChest  = collision.gameObject;
 		}
+	
+		if (collision.transform.CompareTag("Ladder"))
+		{
+			if (!PlayerGameObject)
+				return;
 
+			m_playerController.TouchingLadder = true;
+			m_playerController.TouchedLadder  = collision.gameObject;
+		}
+		
+		if (collision.transform.CompareTag("Pickup"))
+		{
+			if (!PlayerGameObject)
+				return;
+
+			m_playerController.TouchingItem = true;
+			m_playerController.TouchedItem  = collision.gameObject;
+		}
+		
 		if (collision.transform.CompareTag("Coin"))
 		{
 			Destroy(collision.gameObject);
 
-			CollectedCoins++;
+			CollectedCoins+= 5000;
 		}
 	}
 
 	private void OnTriggerExit2D(Collider2D other)
 	{
-		if (!other.transform.CompareTag("Chest"))
-			return;
-
 		if (!PlayerGameObject)
 			return;
 
-		m_playerController.TouchingChest = false;
-		m_playerController.TouchedChest  = null;
+		
+		if (other.transform.CompareTag("Ladder"))
+		{
+			if (!PlayerGameObject)
+				return;
+
+			m_playerController.TouchingLadder = false;
+			m_playerController.TouchedLadder  = null;
+		}
+		
+		if (other.transform.CompareTag("Chest"))
+		{
+			m_playerController.TouchingChest = false;
+			m_playerController.TouchedChest  = null;
+		}
 	}
 
 	private void Update()

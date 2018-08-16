@@ -10,6 +10,7 @@ TagManager:
   - PlayerCoinCollider
   - Chest
   - Pickup
+  - Ladder
   layers:
   - Default
   - TransparentFX

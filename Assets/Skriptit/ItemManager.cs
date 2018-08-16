@@ -25,8 +25,6 @@ public class ItemManager : MonoBehaviour
 		// Application.StreamingAssets points to Assets/StreamingAssets in the Editor, and the StreamingAssets folder in a build
 		string filePath = Path.Combine(Application.streamingAssetsPath, gameDataFileName);
 
-		Debug.Log(filePath);
-
 		if (File.Exists(filePath))
 		{
 			// Read the json from the file into a string

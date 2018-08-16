@@ -2,28 +2,54 @@
 
 public class Item : MonoBehaviour
 {
-	public int            Id;
-	public SpriteRenderer Renderer;
+	//adjust this to change speed
+	public float Speed = .2f;
 
-	// Use this for initialization
-	private void Start()
-	{
-		Renderer = GetComponent<SpriteRenderer>();
-	}
+	//adjust this to change how high it goes
+	public float Height = 25f;
 
-	public Item Spawn(Vector3 position, int id, string image)
+	public int Id;
+
+	public Vector2 OriginalPos;
+	
+	public Item Spawn(Vector2 position, int id)
 	{
 		Id = id;
 
-		Sprite sprite = Resources.Load<Sprite>(image);
-		
+		Sprite sprite = Resources.Load<Sprite>(GetItemSprite(id));
+
 		Debug.Log(sprite);
 
 		if (sprite == null)
 			return null;
 
-		Renderer.sprite = sprite;
+		Item item = Instantiate(this, position, Quaternion.identity);
+		item.OriginalPos = position;
+		item.GetComponent<SpriteRenderer>().sprite = sprite;
 
-		return Instantiate(this, position, Quaternion.identity);
+		return item;
+	}
+
+
+	public void Update()
+	{
+		//get the objects current position and put it in a variable so we can access it later with less code
+		Vector2 pos = this.OriginalPos;
+		
+		//calculate what the new Y position will be
+		pos.y = Mathf.Cos(Time.time * Speed) * (Height / 2) + (Height / 2);
+		
+		//set the object's Y to the new calculated Y
+		transform.position = pos;
+	}
+
+	public string GetItemSprite(int id)
+	{
+		switch (id)
+		{
+			case 1: return "possu";
+		}
+
+		return "";
 	}
 }

@@ -1,9 +1,14 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Image = UnityEngine.UI.Image;
+using Random = UnityEngine.Random;
+using Slider = UnityEngine.UI.Slider;
 
 public class PlayerController : MonoBehaviour
 {
@@ -15,6 +20,8 @@ public class PlayerController : MonoBehaviour
 	private CameraController m_cameraController;
 	private HealthManager    m_myHealthManager;
 
+
+	public GameObject UI;
 	public Item ItemBaseItem;
 
 	public EnemySpawnManager    SpawnManager;
@@ -26,6 +33,7 @@ public class PlayerController : MonoBehaviour
 	public Slider HealthSlider;
 	public Text   EnemyCountText;
 	public Image  DamageImage;
+	public Image  ItemElement;
 
 	public float FlashSpeed;
 	public Color FlashColor = new Color(1f, 0f, 0f, 0.3f);
@@ -39,9 +47,17 @@ public class PlayerController : MonoBehaviour
 	private int m_shootableMask;
 
 	private bool m_bJumping;
+	private bool m_bOnLadder;
 
+	public List<Pickup> items;
+	
 	[HideInInspector] public bool       TouchingChest;
+	[HideInInspector] public bool       TouchingLadder;
+	[HideInInspector] public bool       TouchingItem;
 	[HideInInspector] public GameObject TouchedChest;
+	[HideInInspector] public GameObject TouchedLadder;
+	[HideInInspector] public GameObject TouchedItem;
+
 
 	// Use this for initialization
 	private void Start()
@@ -52,6 +68,8 @@ public class PlayerController : MonoBehaviour
 		m_collider        = GetComponent<Collider2D>();
 		m_laserLine       = GetComponent<LineRenderer>();
 		m_myHealthManager = GetComponent<HealthManager>();
+
+		items = new List<Pickup>();
 
 		if (Camera == null)
 			Camera = Camera.main;
@@ -99,7 +117,10 @@ public class PlayerController : MonoBehaviour
 
 		if (EnemyCountText == null)
 			return;
+	
+		DoItemEffects();
 
+		
 		DamageImage.color = m_damaged ? FlashColor : Color.Lerp(DamageImage.color, Color.clear, FlashSpeed * Time.deltaTime);
 
 		m_damaged = false;
@@ -108,6 +129,13 @@ public class PlayerController : MonoBehaviour
 		{
 			EnemyCountText.text = "YOU LOSE!";
 			return;
+		}
+		
+		if (!m_bOnLadder && TouchingLadder 
+			&& Input.GetKeyDown(KeyCode.UpArrow)   || Input.GetKeyDown(KeyCode.W)
+		    || Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
+		{
+			MountLadder();
 		}
 
 		if (TouchingChest && Input.GetKeyDown(KeyCode.F))
@@ -126,11 +154,21 @@ public class PlayerController : MonoBehaviour
 				chestScript.Used           = true;
 				chestScript.ChestInfo.text = "";
 
-				ItemBaseItem.Spawn(transform.position, 1, "Sprites/possu.png");
+				var item = ItemBaseItem.Spawn(transform.position, 1);
 
-				Debug.Log("Ostit chestin");
+				Debug.Log("Ostit chestin ", item);
 			}
 		}
+		
+		if (TouchingItem)
+		{
+			AddItem(TouchedItem.GetComponent<Item>().Id);
+
+			Destroy(TouchedItem);
+			TouchingItem = false;
+			TouchedItem = null;
+		}
+		
 
 		int iCount = GameObject.FindGameObjectsWithTag("Enemy").Count(enemy => !enemy.GetComponent<HealthManager>().IsDead);
 
@@ -167,6 +205,47 @@ public class PlayerController : MonoBehaviour
 		m_bossActive = true;
 	}
 
+	private void AddItem(int id)
+	{
+		Pickup item = new Pickup(id);
+
+		AddItemToHud(item);
+		
+		items.Add(item);
+		
+		Debug.Log(items.ToString());
+	}
+
+	private void AddItemToHud(Pickup item)
+	{
+		Sprite sprite = Resources.Load<Sprite>(item.GetItemSprite(item.Id));
+
+		Instantiate(ItemElement, new Vector2(0f, 40f), Quaternion.identity, UI.transform);
+		
+		Debug.Log(sprite);
+	}
+	
+	private float _nextCoinTime;
+	
+	private void DoItemEffects()
+	{
+		foreach (Pickup item in items)
+		{
+			switch (item.Id)
+			{
+				case 1:
+				{
+					if(Time.time > _nextCoinTime)
+					{
+						CoinHandler.CollectedCoins++;
+						_nextCoinTime = Time.time + 1.0f;
+					}
+					break;
+				}
+			}
+		}
+	}
+	
 	public void Damaged(Vector2 dirVector2)
 	{
 		m_damaged = true;
@@ -183,7 +262,11 @@ public class PlayerController : MonoBehaviour
 		Vector2 vel = m_body.velocity;
 		vel.y           *= 1.0f - DragY;
 		vel.x           *= 1.0f - DragX;
-		m_body.velocity =  vel;
+		
+		if(!m_bOnLadder)
+		{
+			m_body.velocity = vel;
+		}
 
 		//Jos olen kuollut tai kohteeni on kuollut, lopeta
 		if (m_myHealthManager.IsDead)
@@ -200,40 +283,67 @@ public class PlayerController : MonoBehaviour
 			m_bJumping = false;
 		}
 
-		var vecAdditionVelocity = Vector2.zero;
-
-		if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
+		Vector2 vecAdditionVelocity = Vector2.zero;
+	
+		if(!m_bOnLadder)
 		{
-			if (!m_animator.GetBool("aim"))
-				vecAdditionVelocity.x = -Acceleration;
-
-			m_playerRenderer.flipX = true;
+			if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
+			{
+				if (!m_animator.GetBool("aim"))
+					vecAdditionVelocity.x = -Acceleration;
+	
+				m_playerRenderer.flipX = true;
+			}
+			else if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
+			{
+				if (!m_animator.GetBool("aim"))
+					vecAdditionVelocity.x = Acceleration;
+	
+				m_playerRenderer.flipX = false;
+			}
+		
+			if (Input.GetKey(KeyCode.Mouse0) || Input.GetKey(KeyCode.LeftControl))
+			{
+				m_animator.SetBool("aim", true);
+				m_animator.SetBool("shoot", true);
+			}
+			else
+			{
+				m_animator.SetBool("shoot", m_animator.GetBool("aim") && Input.GetKey(KeyCode.Mouse0));
+				m_animator.SetBool("aim", Input.GetKey(KeyCode.Mouse1));
+			}
 		}
-		else if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
-		{
-			if (!m_animator.GetBool("aim"))
-				vecAdditionVelocity.x = Acceleration;
-
-			m_playerRenderer.flipX = false;
-		}
-
-		if (Input.GetKey(KeyCode.Mouse0) || Input.GetKey(KeyCode.LeftControl))
-		{
-			m_animator.SetBool("aim", true);
-			m_animator.SetBool("shoot", true);
-		}
-		else
-		{
-			m_animator.SetBool("shoot", m_animator.GetBool("aim") && Input.GetKey(KeyCode.Mouse0));
-			m_animator.SetBool("aim", Input.GetKey(KeyCode.Mouse1));
-		}
-
+		
 		m_animator.SetBool("run", Mathf.Abs(vecAdditionVelocity.x) > 0.0);
 
+		if (m_bOnLadder)
+		{
+			if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+			{
+				Vector2 newPos = m_body.transform.position;
+				newPos.y += 10.0f * Time.fixedDeltaTime;
+				
+				m_body.MovePosition(newPos);
+			}
+			
+			if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+			{
+				Vector2 newPos = m_body.transform.position;
+				newPos.y -= 10.0f * Time.fixedDeltaTime;
+				
+				m_body.MovePosition(newPos);
+			}
+			
+			if (!TouchingLadder || Input.GetKey(KeyCode.Space))
+			{
+				DismountLadder();
+			}
+		}
+		
 		if (!DidJustJump() && IsOnGround() && Input.GetKey(KeyCode.Space))
 		{
 			vecAdditionVelocity.y = m_body.velocity.y + Jump;
-			m_bJumping            = true;
+			m_bJumping = true;
 		}
 
 		//Tippui ulos levelistä
@@ -241,10 +351,38 @@ public class PlayerController : MonoBehaviour
 		{
 			m_myHealthManager.Die(gameObject);
 		}
-
-		FinalCollisionCheck(vecAdditionVelocity);
+		
+		if(!m_bOnLadder)
+		{
+			FinalCollisionCheck(vecAdditionVelocity);
+		}
 	}
 
+	private void MountLadder()
+	{
+		if (TouchedLadder == null)
+			return;
+		
+		Vector2 newPos = m_body.transform.position;
+		newPos.x = TouchedLadder.transform.position.x;
+
+		m_body.transform.position = newPos;
+
+		gameObject.layer = LayerMask.NameToLayer("CoinPulled");
+		
+		m_body.velocity = Vector2.zero;
+		m_bOnLadder = true;
+		m_body.gravityScale = 0.0f;
+	}
+
+	private void DismountLadder()
+	{
+		m_bOnLadder = false;
+		m_body.gravityScale = 10.0f;
+		
+		gameObject.layer = LayerMask.NameToLayer("Player");
+	}
+	
 	public float ShotDistance = 50f;
 
 	[UsedImplicitly]
